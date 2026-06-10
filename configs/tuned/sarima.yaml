@@ -1,0 +1,6 @@
+sarima:
+  max_p: 1
+  max_q: 1
+  d_options:
+  - 1
+  seasonal: true

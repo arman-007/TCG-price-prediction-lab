@@ -1,0 +1,28 @@
+# Core scientific stack.
+# pandas pinned <3 on purpose: statsmodels/prophet compatibility is proven on 2.x.
+# This venv is fully isolated from the main Django project, so the pins differ.
+numpy>=2.0,<3
+pandas>=2.3,<3
+pyarrow>=16
+scipy>=1.13
+
+# Models
+statsmodels>=0.14.4
+prophet>=1.1.6
+xgboost-cpu>=2.1        # CPU-only wheel: much smaller than full xgboost; disk is tight
+scikit-learn>=1.5       # required by xgboost's sklearn API (XGBRegressor)
+
+# Optimization
+optuna>=4.0
+
+# Data access
+psycopg2-binary>=2.9
+python-dotenv>=1.0
+
+# Infra
+PyYAML>=6
+joblib>=1.4
+tqdm>=4.66
+tabulate>=0.9
+matplotlib>=3.9
+pytest>=8

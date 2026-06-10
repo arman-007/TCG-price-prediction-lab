@@ -1,0 +1,9 @@
+xgboost:
+  params:
+    max_depth: 2
+    n_estimators: 100
+    learning_rate: 0.015581191269649625
+    min_child_weight: 3.7631531400432703
+    subsample: 0.8798118165722129
+    colsample_bytree: 0.6251953939195647
+    reg_lambda: 1.6362266999987662

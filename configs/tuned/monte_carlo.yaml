@@ -1,0 +1,3 @@
+monte_carlo:
+  block_size: 2
+  drift: full

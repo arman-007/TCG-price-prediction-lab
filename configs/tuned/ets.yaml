@@ -1,0 +1,3 @@
+ets:
+  trend: none
+  damped: true

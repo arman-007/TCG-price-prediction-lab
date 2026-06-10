@@ -1,0 +1,61 @@
+# Track 2 (FUTURE — do not expect useful results yet).
+#
+# Global weekly model over the FULL catalog (~600k cards). The daily sync
+# only started 2026-05-24, so as of June 2026 the median card has 2
+# observations: per-series models are impossible and even the global GBM
+# has almost no usable training rows. Revisit once ~6 months of sync
+# history exist (~2026-12). Before running at this scale, also address the
+# vectorization notes in pricelab/features/tabular.py.
+
+seed: 42
+quantiles: [0.1, 0.5, 0.9]
+horizons: [1, 4, 13]             # weeks: ~7/30/90 days
+
+data:
+  snapshot_dir: data/raw
+  target_field: ungraded_price
+  cohort: all
+  freq: W-SUN
+  min_obs: 12
+  ffill_limit: 2
+  min_price: 1.0
+  max_cards: null
+
+backtest:
+  n_cutoffs: 12
+  step: 1
+  exclude_last: 0
+  val_fraction: 0.5
+  min_train_obs: 10
+
+models: [naive, drift, monte_carlo, xgboost, ensemble, ensemble_conformal]
+
+xgboost:
+  lags: [1, 2, 4, 8, 13, 26]
+  rolling_windows: [4, 13, 26]
+  params:
+    max_depth: 4
+    n_estimators: 400
+    learning_rate: 0.05
+    min_child_weight: 10.0
+    subsample: 0.8
+    colsample_bytree: 0.8
+    reg_lambda: 2.0
+
+monte_carlo:
+  n_paths: 1000
+  block_size: 2
+  drift: half
+
+ensemble:
+  members: [xgboost, monte_carlo, drift]
+  power: 2.0
+
+tuning:
+  n_trials: 30
+  max_cards: 2000
+  n_cutoffs: 6
+  storage: experiments/optuna.db
+
+runtime:
+  n_jobs: 8

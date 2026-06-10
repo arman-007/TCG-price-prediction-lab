@@ -1,0 +1,6 @@
+prophet:
+  changepoint_prior_scale: 0.41239059586773935
+  seasonality_prior_scale: 0.23933920560954233
+  n_changepoints: 13
+  changepoint_range: 0.700641420837627
+  yearly_seasonality: false

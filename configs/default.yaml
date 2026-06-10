@@ -1,0 +1,79 @@
+# Track 1: monthly-grid forecasting on the deep cohort (~200 cards with
+# 2-6 years of monthly history). Horizons are GRID STEPS: on the monthly
+# grid 1/3/6 = ~30/90/180 days, matching product-facing prediction windows.
+
+seed: 42
+quantiles: [0.1, 0.5, 0.9]
+horizons: [1, 3, 6]
+
+data:
+  snapshot_dir: data/raw
+  target_field: ungraded_price   # any PriceHistory price column works
+  cohort: deep                   # deep = apify-backfilled cards | all
+  freq: M                        # pandas PERIOD alias (M, W-SUN, ...)
+  min_obs: 24                    # min real observations to admit a card
+  ffill_limit: 2                 # carry a standing price at most 2 periods
+  min_price: 1.0                 # below this, price quantization is the signal
+  max_cards: null                # cap cohort (most-observed first); null = all
+
+backtest:
+  n_cutoffs: 18
+  step: 1
+  exclude_last: 0
+  val_fraction: 0.5              # earlier half of cutoffs: tuning + ensemble weights
+  min_train_obs: 18              # min real obs before a cutoff to forecast a card
+
+models:
+  - naive
+  - drift
+  - ets
+  - sarima
+  - prophet
+  - monte_carlo
+  - xgboost
+  - ensemble
+  - ensemble_conformal
+
+sarima:
+  max_p: 2
+  max_q: 2
+  d_options: [0, 1]
+  seasonal: false                # short monthly series; seasonality is a tuning option
+
+prophet:
+  changepoint_prior_scale: 0.05
+  seasonality_prior_scale: 1.0
+  n_changepoints: 15
+  changepoint_range: 0.9
+  yearly_seasonality: auto
+  uncertainty_samples: 300
+
+xgboost:
+  lags: [1, 2, 3, 6, 12]
+  rolling_windows: [3, 6, 12]
+  params:
+    max_depth: 3
+    n_estimators: 300
+    learning_rate: 0.05
+    min_child_weight: 5.0
+    subsample: 0.9
+    colsample_bytree: 0.9
+    reg_lambda: 1.0
+
+monte_carlo:
+  n_paths: 2000
+  block_size: 3
+  drift: half                    # full | half | none — shrink historical drift
+
+ensemble:
+  members: [ets, sarima, prophet, xgboost, monte_carlo]
+  power: 2.0                     # weight ∝ (1/val-MASE)^power, per horizon
+
+tuning:
+  n_trials: 40
+  max_cards: 80                  # most-observed cards only, for cheap trials
+  n_cutoffs: 9                   # pushed into the val era via exclude_last
+  storage: experiments/optuna.db
+
+runtime:
+  n_jobs: 8                      # 12 physical cores; leave headroom
